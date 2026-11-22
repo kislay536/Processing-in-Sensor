@@ -1,0 +1,13 @@
+# Direct dependencies of the PiSe laptop side, pinned to the versions the project was developed and measured with.
+# (Python 3.12, Ubuntu 24.04, RTX 3050 Laptop GPU. torch 2.6.0 from PyPI is the CUDA 12.4 build on Linux.)
+# The other packages (scipy, psutil, requests, ...) come in through ultralytics.
+numpy==2.4.2
+opencv-python==4.13.0.92
+pillow==10.2.0
+matplotlib==3.10.8
+torch==2.6.0
+torchvision==0.21.0
+ultralytics==8.4.216
+onnx==1.23.2
+nvidia-ml-py==13.615.71     # provides `import pynvml` (GPU power / utilisation in energy/model.py)
+huggingface-hub==2.4.0      # model downloads (vlm_agent/setup*.sh)

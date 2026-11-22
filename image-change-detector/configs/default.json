@@ -1,0 +1,22 @@
+{
+  "bg_mode": "sigma_delta",
+  "pix_thresh_min": 20,
+  "var_init": 4,
+  "var_min": 1,
+  "var_max": 127,
+  "var_shift": 1,
+  "ema_shift": 5,
+  "ema_fraction_bits": 8,
+  "ema_pixel_threshold": 20,
+  "cell_fraction_num": 1,
+  "cell_fraction_den": 4,
+  "min_cells": 2,
+  "persist_frames": 2,
+  "global_fraction_num": 3,
+  "global_fraction_den": 5,
+  "illumination_enabled": true,
+  "illumination_min_offset": 10,
+  "illumination_residual_num": 1,
+  "illumination_residual_den": 20,
+  "freeze_frames": 3
+}

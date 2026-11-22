@@ -1,0 +1,18 @@
+{
+ "repo": "Qwen/Qwen3-VL-2B-Instruct-GGUF",
+ "files": {
+  "Qwen3VL-2B-Instruct-Q4_K_M.gguf": {
+   "path": "/home/kislay/Documents/lauzhack/eventcam/vlm_agent/models/Qwen3VL-2B-Instruct-Q4_K_M.gguf",
+   "sha256": "089d75c52f4b7ffc56ba998ffc50aae89fcafc755f9e7208aacca281dca6c2ae",
+   "bytes": 1107409952
+  },
+  "mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf": {
+   "path": "/home/kislay/Documents/lauzhack/eventcam/vlm_agent/models/mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf",
+   "sha256": "f9a68fabba69c3b81e153367b2c7521030b0fa8bb0de400c9599c8e6725f9c82",
+   "bytes": 445053216
+  }
+ },
+ "llama_cpp_tag": "v1.0.0",
+ "llama_cpp_commit": "b1b770d90d94cad9e9ea5b993bdbc383a522fb28",
+ "gpu": "NVIDIA GeForce RTX 3050 Laptop GPU, 595.99.02"
+}

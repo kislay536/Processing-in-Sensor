@@ -1,0 +1,32 @@
+{
+ "result": {
+  "negotiated": {
+   "fourcc": "YUYV",
+   "width": 640,
+   "height": 480,
+   "fps": 30.0
+  },
+  "frames": 873,
+  "failed_reads": 0,
+  "frame_bytes": [
+   614400
+  ],
+  "mean_fps": 29.09,
+  "interval_ms": {
+   "p50": 32.1,
+   "p99": 60.0,
+   "max": 64.1
+  },
+  "frames_over_50ms": 25,
+  "cpu_percent_of_one_core": 0.5,
+  "image_changes_over_time": true
+ },
+ "checks": {
+  "mean fps >= 29.5": false,
+  "p99 interval < 50 ms": false,
+  "0 failed/short reads": true,
+  "every frame 614400 bytes": true,
+  "negotiated YUYV 640x480": true,
+  "image not frozen": true
+ }
+}

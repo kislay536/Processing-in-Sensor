@@ -1,0 +1,35 @@
+"""Analyzer cascade. Each analyzer: fn(event_dir, meta, report) -> None, adds to report['sections'].
+
+Milestone 1 ships only the cheap analyzer. YOLO pose and the small VLM plug in here later (milestone 2).
+"""
+from . import basic, yolo
+
+ANALYZERS = [basic.analyze, yolo.analyze]
+try:   # optional: the local VLM scene-report agent lives in the self-contained vlm_agent/ folder
+    import vlm_agent
+    ANALYZERS.append(vlm_agent.analyze)
+except Exception:
+    vlm_agent = None
+
+
+def run_cascade(event_dir, meta):
+    report = dict(event_id=meta["event_id"], sections={}, summary="")
+    try:
+        from vlm_agent import prompts as _vp
+        live = bool(_vp.LIVE) and not _vp.QUIZ          # live mode: only the VLM runs (YOLO + basic cost about 1 s per chunk)
+    except Exception:
+        live = False
+    for fn in ANALYZERS:
+        if live and fn in (basic.analyze, yolo.analyze):
+            continue
+        try:
+            fn(event_dir, meta, report)
+        except Exception as e:   # one failing analyzer must not lose the event
+            report['sections'][fn.__module__.split('.')[-1] + ' (failed)'] = repr(e)
+    lines = [f"# Event {meta['event_id']}", ""]
+    for name, sec in report["sections"].items():
+        lines.append(f"## {name}")
+        lines.append(sec if isinstance(sec, str) else str(sec))
+        lines.append("")
+    report["markdown"] = "\n".join(lines)
+    return report

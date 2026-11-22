@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+src/image_change_detector.egg-info/PKG-INFO
+src/image_change_detector.egg-info/SOURCES.txt
+src/image_change_detector.egg-info/dependency_links.txt
+src/image_change_detector.egg-info/requires.txt
+src/image_change_detector.egg-info/top_level.txt
+src/image_detector/__init__.py
+src/image_detector/config.py
+src/image_detector/detector.py
+src/image_detector/files.py
+src/image_detector/fixedpoint.py
+src/image_detector/preprocess.py
+src/image_detector/types.py

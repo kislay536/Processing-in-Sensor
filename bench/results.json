@@ -1,0 +1,41 @@
+{
+ "params": {
+  "pix_thresh": 24,
+  "bg_shift": 3,
+  "motion_t": 15,
+  "k_consec": 2,
+  "warmup": 25,
+  "cooldown": 25,
+  "person_t": 0,
+  "n_pre": 50,
+  "n_post": 10
+ },
+ "continuous": {
+  "frames_total": 398,
+  "frames_to_gpu": 398,
+  "events": 0,
+  "gpu_busy_s": 2.439,
+  "stream_s": 79.6,
+  "duty_pct": 3.06,
+  "mean_power_w": 35.1,
+  "mean_util_pct": 56.2,
+  "mb_to_gpu": 366.8,
+  "wall_s": 2.4
+ },
+ "gated": {
+  "frames_total": 398,
+  "frames_to_gpu": 389,
+  "events": 14,
+  "gpu_busy_s": 2.402,
+  "stream_s": 79.6,
+  "duty_pct": 3.02,
+  "mean_power_w": 41.6,
+  "mean_util_pct": 52.1,
+  "mb_to_gpu": 239.0,
+  "wall_s": 2.9
+ },
+ "person_episodes": 9,
+ "episodes_caught_by_gated": 8,
+ "person_frames": 170,
+ "person_frames_seen_by_gated": 164
+}

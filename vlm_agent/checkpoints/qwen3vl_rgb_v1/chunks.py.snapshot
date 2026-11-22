@@ -1,0 +1,66 @@
+"""GPU-side assembler for the board's motion-gated stream (EVF1 frames + EVE1 chunk ends, common/proto.py).
+
+Each frame is decoded and written to events/event_<seg>/f<fid>.jpg as soon as it arrives (a 30 s chunk is never held in RAM);
+the chunk's meta.json is written when EVE1 arrives (or when the connection is lost: reason 'interrupted').
+"""
+import json
+import os
+import time
+
+import cv2
+import numpy as np
+
+from common import proto
+
+
+class ChunkAssembler:
+    def __init__(self, out_root):
+        self.out_root = out_root
+        self.cur = {}                                     # seg -> dict(dir, frames, bytes)
+
+    def _dir(self, seg):
+        return os.path.join(self.out_root, f"event_{seg:04d}")
+
+    def on_frame(self, m):
+        c = self.cur.get(m["seg"])
+        if c is None:
+            d = self._dir(m["seg"])
+            os.makedirs(d, exist_ok=True)
+            c = self.cur[m["seg"]] = dict(dir=d, frames=[], bytes=0, episode=m["episode"], chunk=m["chunk"], w=m["w"], h=m["h"])
+        yuyv = np.frombuffer(m["payload"], np.uint8).reshape(m["h"], m["w"], 2)
+        bgr = cv2.cvtColor(yuyv, cv2.COLOR_YUV2BGR_YUY2)
+        name = f"f{m['fid']:06d}.jpg"
+        cv2.imwrite(os.path.join(c["dir"], name), bgr, [cv2.IMWRITE_JPEG_QUALITY, 90])
+        c["frames"].append(dict(frame_id=m["fid"], ts_us=m["ts_us"], file=name, changed_px=m["changed"], preroll=bool(m["flags"] & 2), context=bool(m["flags"] & 4), seq=m["seq"]))
+        c["bytes"] += len(m["payload"])
+
+    def _finish(self, seg, reason_name, first_ts=None, last_ts=None):
+        c = self.cur.pop(seg, None)
+        if not c or not c["frames"]:
+            return None
+        fr = c["frames"]
+        trig = next((f for f in fr if not f["preroll"]), fr[0])
+        t0, t1 = fr[0]["ts_us"], fr[-1]["ts_us"]
+        kind = "context" if fr[0].get("context") else "motion"
+        meta = dict(kind=kind, event_id=seg, episode=c["episode"], chunk=c["chunk"], end_reason=reason_name,
+                    trigger_frame_id=trig["frame_id"], trigger_ts_us=trig["ts_us"],
+                    motion_x1000=max(f["changed_px"] for f in fr) * 1000 // 4096, person_x1000=0,
+                    n_frames=len(fr), start_ts_us=t0, end_ts_us=t1, duration_s=round((t1 - t0) / 1e6, 3),
+                    fps=round((len(fr) - 1) / max((t1 - t0) / 1e6, 1e-6), 2) if len(fr) > 1 else 0,
+                    frames=fr, bytes_received=c["bytes"], received_at=time.time())
+        with open(os.path.join(c["dir"], "meta.json"), "w") as fh:
+            json.dump(meta, fh, indent=1)
+        return c["dir"], meta
+
+    def on_end(self, m):
+        name = proto.CHUNK_REASONS[m["reason"]] if m["reason"] < len(proto.CHUNK_REASONS) else str(m["reason"])
+        return self._finish(m["seg"], name)
+
+    def flush_incomplete(self):
+        """Connection lost: finish whatever chunks were in flight."""
+        out = []
+        for seg in list(self.cur):
+            r = self._finish(seg, "interrupted")
+            if r:
+                out.append(r)
+        return out

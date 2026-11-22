@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-change-detector"
+version = "1.0.0"
+description = "Configurable integer background subtraction for ordered image streams"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.24", "Pillow>=9.2"]

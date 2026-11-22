@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PiSe: Processing in Sensor towards multimodal applications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;800&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #f6f8fb; color: #1b2330; font: 15px/1.45 Inter, system-ui, sans-serif; }
+  header.hero { text-align: center; padding: 28px 20px 16px; }
+  header.hero h1 { margin: 0; font-weight: 300; font-size: clamp(18px, 3.2vw, 38px); letter-spacing: -0.01em; color: #3a4658; }
+  header.hero h1 .hl { font-weight: 800; background: linear-gradient(90deg, #2f5bff, #00a3d9); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tl { width: 80%; margin: 0 auto; padding: 0 0 16px; }
+  .tl canvas { width: 100%; height: 56px; display: block; border: 1px solid #d5dbe5; border-radius: 6px; background: #ffffff; }
+  .legend { display: flex; gap: 18px; justify-content: center; margin-top: 8px; color: #5b6678; font-size: 13px; }
+  .legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; border: 1px solid; }
+  .cmp { width: 80%; margin: 0 auto 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 1000px) { .cmp { grid-template-columns: repeat(2, 1fr); } }
+  .cmp div.c { background: #fff; border: 1px solid #d5dbe5; border-radius: 6px; padding: 8px 10px 4px; }
+  .cmp .t { font-size: 13px; font-weight: 600; color: #3a4658; } .cmp .t small { font-weight: 400; color: #7a8598; }
+  .cmp canvas { width: 100%; height: 130px; display: block; }
+  .cmpleg { display: flex; gap: 18px; justify-content: center; margin: 0 0 8px; color: #5b6678; font-size: 13px; }
+  .cmpleg i { display: inline-block; width: 22px; height: 0; border-top: 3px solid; margin-right: 6px; vertical-align: 3px; }
+  .three { width: 80%; margin: 0 auto 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 800px) { .three { grid-template-columns: 1fr; } }
+  .view canvas.ov { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cls { padding: 8px 12px 10px; font-size: 13.5px; color: #3a4658; border-top: 1px solid #e6eaf1; min-height: 52px; }
+  .cls .chip { display: inline-block; background: #e9edf4; border-radius: 999px; padding: 1px 8px; margin: 0 4px 4px 0; font-size: 11.5px; } .cls .chip.p { background: #dbe6ff; color: #1f48c8; }
+  .box { background: #fff; border: 1px solid #d5dbe5; border-radius: 6px; overflow: hidden; }
+  .box h3 { margin: 0; padding: 8px 12px; font-size: 13px; font-weight: 600; color: #3a4658; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e6eaf1; }
+  .box h3 .badge { font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; background: #e9edf4; color: #66728a; }
+  .box h3 .badge.on { background: #e5484d; color: #fff; }
+  .box .view { position: relative; background: #000; aspect-ratio: 4 / 3; }
+  .box .view img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .box.audio .view { background: #0f1620; padding: 0; }
+  .box.audio canvas { width: 100%; height: 100%; display: block; }
+  .box.audio.loud { border-color: #e5484d; box-shadow: 0 0 0 2px rgba(229,72,77,.35); }
+  .box .foot { padding: 6px 12px; font-size: 12px; color: #5b6678; font-variant-numeric: tabular-nums; }
+  /* fit the whole page in one screen: title, timeline, 3 smaller panels, 2x2 plots */
+  html, body { height: 100%; }
+  body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  header.hero { padding: 10px 20px 6px; flex: none; } header.hero h1 { font-size: clamp(16px, 2.4vw, 28px); }
+  .tl { flex: none; padding: 0 0 6px; } .tl canvas { height: 40px; } .legend { margin-top: 4px; font-size: 12px; }
+  .three { flex: 0 0 43vh; min-height: 0; margin-bottom: 6px; }
+  .outrow { flex: 0 0 11vh; width: 80%; margin: 0 auto 6px; display: grid; grid-template-columns: 1fr 340px; gap: 10px; min-height: 0; }
+  .out { transition: opacity .5s; height: 100%; min-height: 0; background: #fff; border: 1px solid #d5dbe5; border-radius: 6px; padding: 6px 12px; overflow: auto; font-size: 13px; line-height: 1.4; color: #1b2330; }
+  .out .h { font-size: 11.5px; color: #66728a; margin-bottom: 3px; } .out .h b { color: #3a4658; } .out .sp { color: #7a3fd0; } .out .tm { color: #5b6678; font-size: 12px; }
+  @media (max-width: 800px) { .outrow { flex: none; grid-template-columns: 1fr; } .out { max-height: 160px; } }
+  .feed { background: #fff; border: 1px solid #d5dbe5; border-radius: 6px; padding: 5px 10px; font-size: 11.5px; color: #3a4658; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; overflow: hidden; }
+  .feed .r { display: grid; grid-template-columns: 62px 1fr; gap: 8px; align-items: center; line-height: 1.25; }
+  .feed .r b { font-weight: 600; } .feed .r span { color: #5b6678; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feed .lim { color: #66728a; } .feed .bar { height: 5px; background: #e9edf4; border-radius: 3px; margin-top: 2px; overflow: hidden; } .feed .bar i { display: block; height: 100%; width: 0; background: #2f5bff; transition: width .15s; }
+  .feed .bar.aud i { background: #e61eaa; } .feed .live { color: #e5484d; font-weight: 700; }
+  .three .box { display: flex; flex-direction: column; min-height: 0; }
+  .three .box .view { flex: 1 1 0; min-height: 0; aspect-ratio: auto; display: grid; place-items: center; }
+  .three .box h3 { padding: 4px 10px; font-size: 12px; } .three .box .foot { padding: 3px 10px; font-size: 11px; }
+  .three .box.audio .view canvas { width: 100%; height: 100%; }
+  .fit { position: relative; height: 100%; aspect-ratio: 4 / 3; max-width: 100%; }
+  .fit img, .fit canvas.ov { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+  .cls { padding: 3px 10px; font-size: 11.5px; min-height: 0; max-height: 40px; overflow: hidden; } .cls .chip { font-size: 10.5px; margin-bottom: 2px; }
+  .cmpleg { flex: none; margin: 0 0 4px; font-size: 12px; }
+  .cmp { flex: 1 1 0; min-height: 0; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); margin-bottom: 10px; }
+  .cmp div.c { display: flex; flex-direction: column; min-height: 0; padding: 5px 10px 2px; }
+  .cmp canvas { flex: 1 1 0; min-height: 0; width: 100%; height: 100%; }
+  @media (max-width: 800px) { .three { flex: none; } body { height: auto; overflow: auto; } .cmp { grid-template-columns: 1fr; } .cmp canvas { height: 130px; } }
+  .src { display: flex; gap: 22px; justify-content: center; margin: 2px 0 6px; flex: none; font-size: 13px; color: #3a4658; }
+  .sw { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .sw input { display: none; } .sw .tr { width: 36px; height: 20px; border-radius: 999px; background: #c6cdd9; position: relative; transition: background .15s; }
+  .sw .tr::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+  .sw input:checked + .tr { background: #2f5bff; } .sw input:checked + .tr::after { left: 18px; }
+  .box.off .view::after { content: attr(data-off); position: absolute; inset: 0; display: grid; place-items: center; background: rgba(15,18,22,.86); color: #cfd6e2; font-size: 15px; font-weight: 600; }
+  .box .view { position: relative; }
+  #gpu-cal { font: inherit; font-size: 12.5px; padding: 3px 12px; border-radius: 999px; border: 1px solid #c6cdd9; background: #fff; color: #3a4658; cursor: pointer; } #gpu-cal:hover { border-color: #2f5bff; color: #2f5bff; } #gpu-cal[disabled] { opacity: .55; cursor: default; }
+  .cmprow .prof { position: absolute; left: 0; bottom: 0; width: 10%; box-sizing: border-box; padding: 0 8px 0 14px; } .cmprow .prof .pt { font-size: 11px; color: #5b6678; line-height: 1.25; margin-bottom: 2px; } .cmprow .prof canvas { width: 100%; height: 86px; display: block; background: #fff; border: 1px solid #d5dbe5; border-radius: 6px; }
+  @media (max-width: 1100px) { .cmprow .prof { display: none; } }
+  #gpu-restart { font: inherit; font-size: 12.5px; padding: 3px 12px; border-radius: 999px; border: 1px solid #c6cdd9; background: #fff; color: #3a4658; cursor: pointer; } #gpu-restart:hover { border-color: #e5484d; color: #e5484d; } #gpu-restart[disabled] { opacity: .55; cursor: default; }
+  /* legend of the comparison plots lives in the free space left of the plots */
+  .cmprow { flex: 1 1 0; min-height: 0; position: relative; margin-bottom: 10px; }
+  .cmprow .cmp { flex: none; height: 100%; margin: 0 auto; }
+  .cmprow .cmpleg { position: absolute; left: 0; top: 0; width: 10%; box-sizing: border-box; padding: 2px 8px 0 14px; margin: 0; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 12px; font-size: 11.5px; line-height: 1.3; }
+  .cmprow .cmpleg span { display: block; }
+  .cmprow .cmpleg i { display: block; width: 26px; margin: 0 0 4px; }
+  @media (max-width: 1100px) { .cmprow { display: flex; flex-direction: column; } .cmprow .cmpleg { position: static; width: auto; flex-direction: row; flex-wrap: wrap; padding: 0 0 4px; } .cmprow .cmpleg span { display: inline-block; } .cmprow .cmpleg i { display: inline-block; margin: 0 6px 0 0; } .cmprow .cmp { flex: 1 1 0; width: 80%; height: auto; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1><span class="hl">PiSe</span>: Processing in Sensor towards multimodal applications</h1>
+</header>
+<div class="src">
+  <label class="sw"><input type="checkbox" id="sw-cam" checked><span class="tr"></span>Camera</label>
+  <label class="sw"><input type="checkbox" id="sw-aud" checked><span class="tr"></span>Audio</label>
+  <button id="gpu-cal" title="run the model 10 times back to back (FPGA path paused), average the GPU traces into one call profile, use it as the GPU-only baseline">Measure GPU baseline (10 calls)</button>
+  <span id="cal-msg" style="color:#7a8598"></span>
+  <button id="gpu-restart" title="kill the GPU model process, reload the weights and warm it up again">Restart GPU model</button>
+  <span id="sw-msg" style="color:#7a8598"></span>
+</div>
+<section class="tl">
+  <canvas id="tl" width="2400" height="56"></canvas>
+  <div class="legend"><span><i style="background:rgba(0,160,230,.35);border-color:#00a0e6"></i>video change</span><span><i style="background:rgba(230,30,170,.35);border-color:#e61eaa"></i>audio change</span><span><i style="background:linear-gradient(90deg,rgba(0,160,230,.5),rgba(230,30,170,.5));border-color:#8a6cd0"></i>both</span><span>last 2 min</span></div>
+</section>
+<section class="three">
+  <div class="box" id="box-cam"><h3>Live camera <span class="badge" id="b-cam">–</span></h3><div class="view" data-off="Camera off: not processed"><img id="im-live" alt="live camera"></div><div class="foot" id="f-cam">straight from the camera</div></div>
+  <div class="box" id="box-mo"><h3>Motion detection &amp; classification <span class="badge" id="b-fpga">–</span></h3><div class="view" data-off="Camera off: not processed"><div class="fit"><img id="im-live2" alt="camera"><canvas class="ov" id="mo" width="640" height="480"></canvas></div></div><div class="foot" id="f-fpga">FPGA change cells on the camera view</div></div>
+  <div class="box audio" id="aud-box"><h3>Audio recorder <span class="badge" id="b-aud">–</span></h3><div class="view" data-off="Audio off: not processed"><canvas id="aud" width="640" height="480"></canvas></div><div class="foot" id="f-aud">microphone level, 16 kHz</div></div>
+</section>
+<div class="outrow">
+<section class="out" id="out"><div class="h">model output: waiting for the first analysed chunk…</div></section>
+<section class="feed" id="feed">
+  <div class="lim" id="f-lim">chunk limit: – s</div>
+  <div class="r"><b>Camera</b><div><span id="fc-t">–</span><div class="bar"><i id="fc-b"></i></div></div></div>
+  <div class="r"><b>Audio</b><div><span id="fa-t">–</span><div class="bar aud"><i id="fa-b"></i></div></div></div>
+</section>
+</div>
+<div class="cmprow">
+<div class="cmpleg"><span><i style="border-color:#2f5bff"></i>with FPGA (measured)</span><span><i style="border-color:#e5484d;border-top-style:dashed"></i>send everything: GPU-only, running continuously (average of 10 measured calls)</span></div>
+<section class="cmp">
+  <div class="c"><div class="t">Traffic to the GPU <small>Mbit/s</small></div><canvas id="p-bw" width="600" height="130"></canvas></div>
+  <div class="c"><div class="t">GPU power <small>W</small></div><canvas id="p-pw" width="600" height="130"></canvas></div>
+  <div class="c"><div class="t">GPU utilisation <small>%</small></div><canvas id="p-ut" width="600" height="130"></canvas></div>
+  <div class="c"><div class="t">System energy, cumulative <small>Wh</small></div><canvas id="p-en" width="600" height="130"></canvas></div>
+</section>
+</div>
+<script>
+const c = document.getElementById('tl'), x = c.getContext('2d'), W = 120;
+async function draw() {
+  let g; try { g = (await (await fetch('/api/status')).json()).gpu; } catch (e) { return; }
+  const r1 = c.getBoundingClientRect(); if (r1.width > 0 && c.width !== Math.round(r1.width)) { c.width = Math.round(r1.width); c.height = Math.round(r1.height); }
+  const w = c.width, h = c.height, now = g.now_ts, X = t => w - (now - t) / W * w;
+  x.clearRect(0, 0, w, h);
+  const layer = (col, k) => { x.fillStyle = col; for (const r of (g.timeline || [])) { if (!r[k]) continue; const a = Math.max(0, X(r[0])), b = Math.min(w, X(r[1]) + 1); if (b > a) x.fillRect(a, 0, b - a, h - 14); } };
+  layer('rgba(0,160,230,.3)', 2); layer('rgba(230,30,170,.3)', 3);
+  x.fillStyle = 'rgba(70,80,95,.9)'; x.font = '11px Inter, system-ui';
+  for (const s of [120, 90, 60, 30, 0]) x.fillText(s ? '-' + s + 's' : 'now', Math.min(w - 30, Math.max(4, X(now - s) - 12)), h - 3);
+}
+draw(); setInterval(draw, 1000);
+
+document.getElementById('im-live').src = '/live.mjpg';
+document.getElementById('im-live2').src = '/live.mjpg';
+// audio recorder: scrolling level (RMS) with the slow baseline, the trigger level and red where the board's audio detector fires
+const AU = [], AN = 300, ac = document.getElementById('aud'), ax = ac.getContext('2d');
+function drawAudio() {
+  const rr = ac.getBoundingClientRect();
+  if (rr.width > 0 && (ac.width !== Math.round(rr.width) || ac.height !== Math.round(rr.height))) { ac.width = Math.round(rr.width); ac.height = Math.round(rr.height); }
+  const w = ac.width, h = ac.height, last = AU[AU.length - 1] || { rms: 0, base: 0, thr: 0, f: 0 };
+  ax.clearRect(0, 0, w, h);
+  const vmax = Math.max(600, ...AU.map(a => a.rms * 1.15), ...AU.map(a => a.thr * 1.1));
+  ax.fillStyle = 'rgba(255,255,255,.05)'; for (const f of [.25, .5, .75]) ax.fillRect(0, h - 34 - (h - 70) * f, w, 1);
+  const dx = w / (AN - 1);
+  AU.forEach((a, i) => { if (a.f) { ax.fillStyle = 'rgba(229,72,77,.28)'; ax.fillRect(w - (AU.length - i) * dx, 0, dx + 1, h - 34); } });
+  // mirrored bars around the centre line (recorder look): bar height = level; dashed line = trigger level (upper and lower mirror)
+  const cy = (h - 34) / 2, H = v => (h - 70) * Math.min(1, v / vmax);
+  AU.forEach((a, i) => { const x0 = w - (AU.length - i) * dx, hh = Math.max(2, H(a.rms)); ax.fillStyle = a.f ? '#ff6b6f' : '#4fd1a5'; ax.fillRect(x0, cy - hh / 2, Math.max(1.5, dx - .6), hh); });
+  ax.setLineDash([6, 4]); ax.lineWidth = 1.5; ax.strokeStyle = '#f0b14a';
+  for (const sg of [-1, 1]) { ax.beginPath(); AU.forEach((a, i) => { const x0 = w - (AU.length - i) * dx, y = cy + sg * H(a.thr) / 2; i ? ax.lineTo(x0, y) : ax.moveTo(x0, y); }); ax.stroke(); }
+  ax.setLineDash([]);
+  ax.fillStyle = 'rgba(200,210,225,.85)'; ax.font = '12px Inter, system-ui'; ax.fillText('trigger level (dashed)', 8, 16); ax.fillText('-20 s', 6, h - 12); ax.fillText('now', w - 32, h - 12);
+  // level meter strip
+  const lv = Math.min(1, last.rms / vmax); ax.fillStyle = '#1f2a38'; ax.fillRect(0, h - 28, w, 14);
+  ax.fillStyle = last.f ? '#ff4d52' : (lv > .5 ? '#f0b14a' : '#4fd1a5'); ax.fillRect(0, h - 28, w * lv, 14);
+}
+const swc = document.getElementById('sw-cam'), swa = document.getElementById('sw-aud');
+async function setSrc() { try { await fetch('/api/sources', { method: 'POST', body: JSON.stringify({ camera: swc.checked, audio: swa.checked }) }); } catch (e) {} }
+swc.onchange = swa.onchange = setSrc;
+document.getElementById('gpu-restart').onclick = async () => { try { await fetch('/api/vlm', { method: 'POST', body: JSON.stringify({ action: 'restart' }) }); } catch (e) {} };
+// when data goes to the GPU: chunk limit, the running chunk (elapsed / limit) per source, and how long ago each source last sent a chunk
+let chunkKey = null, chunkT0 = 0, lastCam = null, lastAud = null;
+const fmtAgo = t => t == null ? 'never' : (t < 90 ? Math.round(t) + ' s ago' : Math.round(t / 60) + ' min ago');
+function updateFeed(s, d, src) {
+  const lim = (d.params || {}).max_chunk_s || 30, now = Date.now() / 1000, sending = d.event_state === 1, cause = d.trig_cause || 0;
+  if (sending) { if (chunkKey !== d.chunk_id) { chunkKey = d.chunk_id; chunkT0 = now; } } else chunkKey = null;
+  const el = sending ? Math.min(lim, now - chunkT0) : 0, pct = sending ? 100 * el / lim : 0;
+  document.getElementById('f-lim').textContent = `chunk limit: ${lim} s (a longer event is sent as consecutive chunks)`;
+  const row = (idT, idB, on, name, last) => {
+    const t = document.getElementById(idT), b = document.getElementById(idB);
+    t.innerHTML = !on ? 'off' : (sending ? `<span class="live">sending to GPU</span> ${el.toFixed(1)} / ${lim} s` : `idle · last sent ${fmtAgo(last)}`);
+    b.style.width = (on ? pct : 0) + '%';
+  };
+  row('fc-t', 'fc-b', src.camera, 'cam', lastCam == null ? null : now - lastCam);
+  row('fa-t', 'fa-b', src.audio, 'aud', lastAud == null ? null : now - lastAud);
+}
+let audT = 0;
+async function audPoll() {
+  try {
+    const s = await (await fetch('/api/status')).json(), d = s.detector || {}, p = d.params || {};
+    const ratio = (p.aud_ratio_x10 || 40) / 10, floor = p.aud_floor_rms || 150;
+    const src = s.sources || { camera: true, audio: true };
+    if (document.activeElement !== swc) swc.checked = src.camera; if (document.activeElement !== swa) swa.checked = src.audio;
+    document.getElementById('box-cam').classList.toggle('off', !src.camera); document.getElementById('box-mo').classList.toggle('off', !src.camera); document.getElementById('aud-box').classList.toggle('off', !src.audio);
+    { const v = (s.gpu && s.gpu.vlm) || {}, b = document.getElementById('gpu-restart'), m = document.getElementById('sw-msg'), busy = !v.loaded;
+      b.disabled = !!v.switching; m.textContent = busy ? (v.state || 'loading…') : ''; }
+    for (const a of (s.audio || [])) { if (a[0] <= audT) continue; audT = a[0]; AU.push({ rms: a[1], base: a[2], thr: Math.max(floor, a[2] * ratio), f: a[3] }); }
+    while (AU.length > AN) AU.shift();
+    const last = AU[AU.length - 1] || { rms: 0, f: 0, thr: 0 }, loud = !!last.f, vf = !!d.fired, set = (id, on, t) => { const e = document.getElementById(id); e.textContent = t; e.classList.toggle('on', on); };
+    set('b-aud', loud, loud ? 'LOUD: audio detected' : 'quiet'); set('b-fpga', vf, vf ? 'CHANGE: sending' : 'static'); set('b-cam', false, (s.camera.fps || 0) + ' fps');
+    document.getElementById('aud-box').classList.toggle('loud', loud);
+    document.getElementById('f-aud').textContent = `level ${last.rms} RMS · background ${d.aud_base_rms} · trigger above ${Math.round(last.thr)}`;
+    document.getElementById('f-fpga').textContent = `score ${d.score}, ${d.active_cells} active cells · ${d.event_state_name}`;
+    updateFeed(s, d, src);
+    drawAudio(); drawMotion(d);
+  } catch (e) {}
+}
+audPoll(); setInterval(audPoll, 150);
+
+// motion overlay: the detector works on an 8x8 grid over the centre crop (512x256) of the 640x480 frame; cells with enough changed pixels light up
+const mo = document.getElementById('mo'), mx = mo.getContext('2d');
+function drawMotion(d) {
+  mx.clearRect(0, 0, 640, 480);
+  const X0 = 64, Y0 = 112, CW = 64, CH = 32, req = (d.params || {}).cell_req || 16, cells = d.cells || [];
+  mx.strokeStyle = 'rgba(255,255,255,.55)'; mx.lineWidth = 1.5; mx.setLineDash([8, 6]); mx.strokeRect(X0, Y0, 512, 256); mx.setLineDash([]);
+  let minc = 9, maxc = -1, minr = 9, maxr = -1;
+  cells.forEach((v, i) => { const c = i % 8, r = (i / 8) | 0; if (v <= 0) return;
+    const on = v >= req; mx.fillStyle = on ? `rgba(255,70,70,${0.25 + 0.5 * Math.min(1, v / 64)})` : `rgba(255,200,60,${0.12 + 0.3 * Math.min(1, v / req)})`;
+    mx.fillRect(X0 + c * CW, Y0 + r * CH, CW, CH);
+    if (on) { minc = Math.min(minc, c); maxc = Math.max(maxc, c); minr = Math.min(minr, r); maxr = Math.max(maxr, r); } });
+  if (maxc >= 0) { mx.strokeStyle = '#ffe14d'; mx.lineWidth = 4; mx.strokeRect(X0 + minc * CW, Y0 + minr * CH, (maxc - minc + 1) * CW, (maxr - minr + 1) * CH); }
+}
+
+
+// what the model says: description of the newest analysed chunk (timeline per window, speech transcript)
+const esc = t => String(t == null ? '' : t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const SHOW_S = 2, FADE_S = 0.6;      // a result stays this many seconds after the model finished it, fading out over the last FADE_S
+async function modelOut() {
+  try {
+    const ev = await (await fetch('/api/events?limit=12')).json(), box = document.getElementById('out'), now = Date.now() / 1000;
+    for (const x of ev) { if (!x.received_at) continue; if (x.n_frames > 0 && (lastCam == null || x.received_at > lastCam)) lastCam = x.received_at; if (x.audio && (lastAud == null || x.received_at > lastAud)) lastAud = x.received_at; }
+    const e = ev.find(x => x.finished_at && ((x.scene && x.scene.summary) || x.summary));
+    const age = e ? now - e.finished_at : Infinity;
+    if (!e || age > SHOW_S) { box.style.opacity = 1; box.innerHTML = '<div class="h">listening…</div>'; return; }
+    const sc = e.scene || {};
+    const head = `<div class="h"><b>${esc(sc.profile_label || sc.model || 'model')}</b>${e.trigger_cause ? ' · trigger: ' + e.trigger_cause : ''}</div>`;
+    const sum = esc(sc.summary || e.summary).split(' | ')[0].split(/\n\s*#*\s*Timeline/i)[0].split(/\n\s*#*\s*Limitations/i)[0].replace(/\s*\(?\+?\d+(\.\d+)?\s*[–-]\s*\+?\d+(\.\d+)?\s*s\)?/g, '').trim();
+    box.innerHTML = head + `<div style="white-space:pre-line;font-size:16px"><b>${sum}</b></div>`;
+    box.style.opacity = age > SHOW_S - FADE_S ? Math.max(0, (SHOW_S - age) / FADE_S) : 1;
+  } catch (err) {}
+}
+modelOut(); setInterval(modelOut, 700);
+
+function plot(id, S, curves, fmt) {
+  const c = document.getElementById(id), r0 = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (r0.width > 0 && (c.width !== Math.round(r0.width * dpr) || c.height !== Math.round(r0.height * dpr))) { c.width = Math.round(r0.width * dpr); c.height = Math.round(r0.height * dpr); }
+  const x = c.getContext('2d'), w = c.width, h = c.height; x.clearRect(0, 0, w, h);
+  if (!S.length) return;
+  const t0 = S[0].t, span = Math.max(1, S[S.length - 1].t - t0);
+  let ymax = 0; for (const r of S) for (const k of curves) if (r[k.key] != null) ymax = Math.max(ymax, r[k.key]);
+  ymax = ymax > 0 ? ymax * 1.1 : 1;
+  x.font = (11 * dpr) + 'px Inter, system-ui'; x.lineWidth = 1;
+  for (const f of [.25, .5, .75, 1]) { const y = h - 6 - (h - 22) * f; x.strokeStyle = 'rgba(120,130,150,.25)'; x.beginPath(); x.moveTo(0, y); x.lineTo(w, y); x.stroke(); x.fillStyle = 'rgba(70,80,95,.9)'; x.fillText(fmt(ymax * f / 1.1), 3, y - 2); }
+  for (const k of curves) { x.strokeStyle = k.color; x.lineWidth = 2.4; x.setLineDash(k.dash || []); x.beginPath(); let first = true;
+    for (const r of S) { if (r[k.key] == null) continue; const px = (r.t - t0) / span * (w - 6) + 3, py = h - 6 - (h - 22) * r[k.key] / ymax; first ? x.moveTo(px, py) : x.lineTo(px, py); first = false; } x.stroke(); }
+  x.setLineDash([]); x.fillStyle = 'rgba(70,80,95,.9)'; x.fillText((span / 60).toFixed(1) + ' min', w - 52, h - 8);
+}
+const B = '#2f5bff', R = '#e5484d';
+async function cmp() {
+  let d; try { d = await (await fetch('/api/energy')).json(); } catch (e) { return; }
+  if (!d || d.error) return;
+  const S = d.series, a = d.assumptions; let cf = 0, cb = 0;
+  const E = S.map((r, i) => { const dt = i ? r.t - S[i - 1].t : 5;
+    cf += (r.gpu_w + a.board_w_used) * dt + r.rx_mbps * 1e6 * dt * a.link_nj_per_bit * 1e-9;
+    if (d.baseline) cb += (r.base_w || 0) * dt + r.base_mbps * 1e6 * dt * a.link_nj_per_bit * 1e-9;
+    return { t: r.t, fpga: cf / 3600, base: d.baseline ? cb / 3600 : null }; });
+  plot('p-bw', S, [{ key: 'base_mbps', color: R, dash: [6, 4] }, { key: 'rx_mbps', color: B }], v => v.toFixed(v < 10 ? 1 : 0));
+  const F = smoothRows(d.fine || [], { gpu_util: 7, gpu_w: 7, base_util: 3, base_w: 3 });     // moving averages (bins of 0.2 s): measured 1.4 s, baseline wave 0.6 s
+  plot('p-pw', F, [{ key: 'base_w', color: R, dash: [6, 4] }, { key: 'gpu_w', color: B }], v => v.toFixed(0) + ' W');     // last 2 min: the wave of the repeated call profile
+  if (d.profile) { const bc = baselineSpikeCurve(F, d.profile); F.forEach((r, i) => { r.base_util = bc[i]; }); }      // GPU-only baseline utilisation: smooth curve through the spike tops of the 10 measured calls
+  plot('p-ut', F, [{ key: 'base_util', color: R, dash: [6, 4] }, { key: 'gpu_util', color: B }], v => v.toFixed(0) + '%');
+  const cs = d.calibrating || {}; document.getElementById('cal-msg').textContent = cs.running ? cs.text : (cs.text && cs.progress >= 1 ? cs.text : (d.calibrated ? '' : 'baseline not measured yet'));
+  document.getElementById('gpu-cal').disabled = !!cs.running;
+  plot('p-en', E, [{ key: 'base', color: R, dash: [6, 4] }, { key: 'fpga', color: B }], v => v.toFixed(3));
+}
+// monotone cubic (PCHIP) through knots [[x, y], ...] evaluated at the times tt
+function pchip(K, tt) {
+  const N = K.length, x = K.map(k => k[0]), y = K.map(k => k[1]), d = [], mk = new Array(N).fill(0);
+  for (let i = 0; i < N - 1; i++) d.push((y[i + 1] - y[i]) / Math.max(1e-9, x[i + 1] - x[i]));
+  for (let i = 1; i < N - 1; i++) mk[i] = d[i - 1] * d[i] <= 0 ? 0 : 2 / (1 / d[i - 1] + 1 / d[i]);
+  mk[0] = d[0] || 0; mk[N - 1] = d[N - 2] || 0;
+  let seg = 0;
+  return tt.map(t => {
+    if (t < x[0] || t > x[N - 1]) return null;
+    while (seg < N - 2 && t > x[seg + 1]) seg++;
+    while (seg > 0 && t < x[seg]) seg--;
+    const h = x[seg + 1] - x[seg], u = (t - x[seg]) / h, u2 = u * u, u3 = u2 * u;
+    return Math.max(0, Math.min(100, (2 * u3 - 3 * u2 + 1) * y[seg] + (u3 - 2 * u2 + u) * h * mk[seg] + (-2 * u3 + 3 * u2) * y[seg + 1] + (u3 - u2) * h * mk[seg + 1]));
+  });
+}
+// GPU-only baseline utilisation: take the spike (peak height and position) of each of the 10 measured calls, repeat them call after call over the
+// timeline (extrapolation) and draw a smooth curve through the spike tops.
+function baselineSpikeCurve(rows, P) {
+  const d = P.d_mean, calls = (P.calls || []).map(k => { let j = 0; k.util.forEach((u, i) => { if (u > k.util[j]) j = i; }); return [k.t[j] * d / k.d, k.util[j]]; });
+  if (!rows.length || !calls.length) return rows.map(r => r.base_util);
+  const t0 = rows[0].t, t1 = rows[rows.length - 1].t, K = [];
+  for (let n = Math.floor(t0 / d) - 1; n <= Math.ceil(t1 / d) + 1; n++) { const c = calls[((n % calls.length) + calls.length) % calls.length]; K.push([n * d + c[0], c[1]]); }
+  K.sort((a, b) => a[0] - b[0]);
+  const out = pchip(K, rows.map(r => r.t));
+  return out.map((v, i) => v == null ? rows[i].base_util : v);
+}
+// centered moving average per key (n bins), edges use the bins that exist
+function smoothRows(rows, spec) {
+  return rows.map((r, i) => { const o = { t: r.t };
+    for (const [k, n] of Object.entries(spec)) { const h = (n - 1) >> 1; let sum = 0, c = 0;
+      for (let j = Math.max(0, i - h); j <= Math.min(rows.length - 1, i + h); j++) if (rows[j][k] != null) { sum += rows[j][k]; c++; }
+      o[k] = c ? sum / c : null; }
+    return o; });
+}
+document.getElementById('gpu-cal').onclick = async () => { try { await fetch('/api/energy', { method: 'POST', body: JSON.stringify({ action: 'calibrate', which: 'active' }) }); } catch (e) {} };
+cmp(); setInterval(cmp, 2000);
+</script>
+</body>
+</html>

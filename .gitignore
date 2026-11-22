@@ -1,0 +1,28 @@
+# ---- environments / caches / logs
+.venv/
+__pycache__/
+*.pyc
+.Xil/
+*.log
+*.jou
+*.bak
+/board/ws/_ide/
+
+# ---- recordings and datasets (camera frames, audio, faces: personal data, and large). Rebuild public sets with scripts/download.sh datasets
+/data/
+/events/
+/tests/_step*/
+
+# ---- model weights and third-party code, fetched by scripts/download.sh
+/vlm_agent/models/
+/vlm_agent/third_party/
+/vlm_agent/logs/
+/yolo11n-pose.pt
+
+# ---- generated build output (rebuild with the HLS / Vivado / firmware scripts)
+/hls/proj_*
+/hls/vectors/
+/hls/syn_done.txt
+/board/vivado_build/proj/
+/board/fw_build/*
+!/board/fw_build/eventcam.elf

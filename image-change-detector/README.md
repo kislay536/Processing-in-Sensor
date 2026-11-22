@@ -1,0 +1,54 @@
+# Image Change Detector
+
+A Python API for detecting persistent changes against the learned background of a stationary camera. The package includes sigma–delta and Q8.8 EMA background modes, configurable pixel and cell thresholds, a boolean ROI, temporal persistence, and exposure and global recovery logic.
+
+## Install
+
+Extract the ZIP, open a terminal in the extracted `image-change-detector` folder, and run:
+
+```text
+python -m pip install .
+```
+
+Requires Python 3.11+, NumPy, and Pillow.
+
+## Evaluate ordered image files
+
+```python
+from pathlib import Path
+from image_detector import DetectorConfig, evaluate_files
+
+# Use zero-padded filenames when sorting lexically.
+paths = sorted(Path("frames").glob("*.jpg"))
+config = DetectorConfig(bg_mode="sigma_delta", pix_thresh_min=20, persist_frames=2)
+
+for item in evaluate_files(
+    paths, config=config, source_fps=60, stride=6, center_crop=True
+):
+    if item.result.fired:
+        print(item.source_frame, item.time_seconds, item.result.score, item.path)
+```
+
+The iterable determines order. Stride 6 evaluates source frames 1, 7, 13, and so on. At 60 source fps this is 10 evaluated fps. `source_fps` adds timestamps. The detector's adaptation and persistence count evaluated images. Pass `roi=mask` for a 64 × 64 boolean mask or leave it unset to monitor the full reduced image.
+
+The loader handles still image formats supported by Pillow and uses the first frame of an animated image. Sampled images must have matching dimensions after applying EXIF orientation. Each processed dimension must be 64 times a power of two. Opt into `center_crop=True` for the largest compatible centered region. For example, a 320 × 240 image is cropped to 256 × 128, converted to grayscale, and block-averaged to 64 × 64.
+
+## Process frames from an existing camera loop
+
+```python
+import numpy as np
+from image_detector import DetectorConfig, ImageChangeDetector, Preprocessor
+
+config = DetectorConfig.from_json("configs/default.json")
+detector = ImageChangeDetector(config, np.ones((64, 64), dtype=bool))
+reduce_frame = Preprocessor(256, 256, channels="rgb")
+
+# For each sampled 256 × 256 RGB uint8 frame from your camera code:
+# result = detector.update(reduce_frame(frame_rgb))
+```
+
+Pass 64 × 64 grayscale `uint8` arrays directly to `detector.update()` if your pipeline already prepares them. Reuse the detector between frames so it retains its background and counters. Call `reset()` for a new sequence. `state_dict()` and `load_state_dict()` support pause and resume with compatible settings and ROI.
+
+`DetectionResult` includes `fired`, `reason`, `score`, `region_pass`, `changed_pixels`, `active_cells`, `persistence_count`, and the 8 × 8 `cell_counts` grid. `fired` stays true while persistence is satisfied. Compare it with the previous sampled result to count trigger onsets. Score reflects active cell coverage.
+
+See `configs/default.json` for all settings. Use `ema_pixel_threshold` with `bg_mode="ema"` and `pix_thresh_min` with `bg_mode="sigma_delta"`.

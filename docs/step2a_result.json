@@ -1,0 +1,31 @@
+{
+ "seconds": 300.1,
+ "frames_sent": 1725,
+ "mean_fps_to_board": 5.75,
+ "board_before": {
+  "frames_rx": 0,
+  "crc_err": 0,
+  "bad_len": 0,
+  "fid_gaps": 0,
+  "last_fid": 0,
+  "bytes_rx": 0
+ },
+ "board_after": {
+  "frames_rx": 1725,
+  "crc_err": 0,
+  "bad_len": 0,
+  "fid_gaps": 0,
+  "last_fid": 1724,
+  "bytes_rx": 1059840000
+ },
+ "slots_checked": 60,
+ "bad_slots": [],
+ "checks": {
+  "board counted every frame the relay sent (1725 vs 1725)": true,
+  "crc_err == 0": true,
+  "bad_len == 0": true,
+  "no frame-id gaps": true,
+  "ring wrapped (1725 frames > 60)": true,
+  "all 60 slots read back and match (60 checked, 0 bad)": true
+ }
+}
