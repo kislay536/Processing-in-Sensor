@@ -6,9 +6,9 @@
 
 Picture a factory, a warehouse or a wildlife-health monitoring site run by AI, with hundreds of cameras and sensors spread over many places. Three problems appear as soon as every sensor streams everything to a central server:
 
-1. **Storage.** All camera and sensor output has to be stored continuously, although the important event is short and in most frames nothing changes at all. Most of the storage holds nothing of interest.
-2. **Compute and power.** If this stream is fed to an AI system, the server processes every frame and sequence, including the ones with nothing in them, and burns compute and power that could serve something important. This calls for lightweight filtering that triggers on an important event, so that only the event is processed and not the whole sequence.
-3. **Bandwidth.** With N sensors sending to one central server of bandwidth B, each sensor effectively gets B/N. The channel count therefore caps the number of sensors. As an illustration, one uncompressed 640x480 colour stream at 30 fps is about 147 Mb/s, so a 10 Gb/s uplink is full at roughly 68 cameras.
+1. **Storage.** All camera and sensor output has to be stored continuously, although the important events are short and in most frames nothing changes at all. Most of the storage holds nothing of interest.
+2. **Compute and power.** If this stream is fed to an AI system, the server processes every frame and sequence, including the ones with no activity in them, and burns compute and power that could serve something important. This calls for lightweight filtering that triggers on an important event, so that only that event is processed and not the whole sequence.
+3. **Bandwidth.** With N sensors sending to one central server of bandwidth B, each sensor effectively gets B/N. Given that cameras generate new data at a high rate, a high number of N sensors would saturate the bandwidth, making large scale deployments impractical. 
 
 PiSe addresses all three. It places a lightweight custom silicon block right next to the sensor. The block does the essential preprocessing and filtering, finds the events of interest, and sends sensor data only when it is actually needed. This removes the bandwidth bottleneck, saves energy because the GPU no longer spends its compute on empty footage, and lets one server serve many more sensors.
 
