@@ -10,7 +10,7 @@ Picture a factory, a warehouse or a wildlife-health monitoring site run by AI, w
 2. **Compute and power.** If this stream is fed to an AI system, the server processes every frame and sequence, including the ones with no activity in them, and burns compute and power that could serve something important. This calls for lightweight filtering that triggers on an important event, so that only that event is processed and not the whole sequence.
 3. **Bandwidth.** With N sensors sending to one central server of bandwidth B, each sensor effectively gets B/N. Given that cameras generate new data at a high rate, a high number of N sensors would saturate the bandwidth, making large scale deployments impractical. 
 
-PiSe addresses all three. It places a lightweight custom silicon block right next to the sensor. The block does the essential preprocessing and filtering, finds the events of interest, and sends sensor data only when it is actually needed. This removes the bandwidth bottleneck, saves energy because the GPU no longer spends its compute on empty footage, and lets one server serve many more sensors.
+PiSe addresses all three. It places a lightweight custom hardware component within the sensor. The block does the essential preprocessing and filtering, finds the events of interest, and sends sensor data only when it is actually needed. This removes the bandwidth bottleneck, saves energy because the GPU no longer spends its compute on empty footage, and lets one server serve many more sensors.
 
 ## How it works
 
